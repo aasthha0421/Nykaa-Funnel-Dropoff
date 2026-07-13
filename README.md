@@ -125,7 +125,8 @@ Built in Power BI with 5 visuals:
 - Cart Adds by Category
 - Conversion Rate by Device
 
-**[View Live Dashboard →](#)** ← replace with your Power BI link
+<img width="1191" height="671" alt="Screenshot (390)" src="https://github.com/user-attachments/assets/657ce408-9603-4a1d-8a8b-ce46e4794648" />
+
 
 ---
 
@@ -162,6 +163,4 @@ If Nykaa improved Add-to-Cart → Checkout conversion by just 10%:
 - How device type and product category interact with conversion — not just overall metrics
 - How to connect data findings to specific, actionable business recommendations
 
----
 
-*Project by [Your Name] | SRM University, B.Tech CSE, 2025 | [LinkedIn](#) | [GitHub](#)*
