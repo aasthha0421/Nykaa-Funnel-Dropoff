@@ -1,4 +1,4 @@
-# 🛍️ Nykaa Purchase Funnel Drop-off Analysis
+# Nykaa Purchase Funnel Drop-off Analysis
 
 > Identifying where users abandon the purchase journey — and what the business should do about it.
 
