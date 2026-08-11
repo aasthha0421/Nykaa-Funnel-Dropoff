@@ -1,23 +1,3 @@
-"""
-Nykaa Funnel Project — Post-Purchase Extension
-================================================
-Extends the original purchase-funnel analysis (Homepage -> Order Placed)
-with a post-purchase stage, to test a hypothesis drawn from real public
-customer reviews: that the biggest revenue leak may not be pre-purchase
-friction, but post-purchase failure (wrong/damaged items, delivery delays,
-and refund/replacement refusals) — and that this leak is worse in
-tier-2/3 cities, consistent with reports that a competitor (Purplle)
-has a delivery-reliability edge there.
-
-IMPORTANT — ALL DATA BELOW IS SYNTHETIC.
-This does not use or represent real Nykaa order data. Probabilities are
-illustrative assumptions designed to reflect the *direction* of patterns
-seen in public reviews (PissedConsumer, Trustpilot), not measured real
-rates. Every assumption is labeled in the ASSUMPTIONS block at the
-bottom of this file. Treat this as a hypothesis-testing framework, not
-a factual claim about Nykaa's actual operations.
-"""
-
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -26,17 +6,8 @@ import seaborn as sns
 sns.set_style("whitegrid")
 rng = np.random.default_rng(42)
 
-# ---------------------------------------------------------------------
-# 1. Generate synthetic post-purchase order data
-#    (This zooms into the "Order Placed" stage of the original funnel
-#    with a larger sample size, purely to make the risk-score patterns
-#    visible — think of it as a separate, deeper-dive dataset.)
-# ---------------------------------------------------------------------
-
 N_ORDERS = 5000
 
-# ASSUMPTION: city-tier mix among orders (not measured — a reasonable
-# split reflecting India's e-commerce order distribution)
 city_tier = rng.choice(
     ["metro", "tier2", "tier3"],
     size=N_ORDERS,
@@ -55,9 +26,6 @@ df = pd.DataFrame({
     "category": category,
 })
 
-# ASSUMPTION: delivery delay probability is higher outside metros.
-# Direction (tier3 > tier2 > metro) is based on the Purplle-vs-Nykaa
-# tier-2/3 delivery reports found in research. Exact rates are illustrative.
 delay_prob_map = {"metro": 0.10, "tier2": 0.18, "tier3": 0.27}
 df["delivery_status"] = df["city_tier"].apply(
     lambda t: rng.choice(
@@ -66,9 +34,6 @@ df["delivery_status"] = df["city_tier"].apply(
     )
 )
 
-# ASSUMPTION: item-accuracy issue rate. Reviews repeatedly mention wrong
-# or damaged items as a top complaint theme — baseline rate here is a
-# deliberately conservative illustrative estimate, NOT a measured figure.
 item_issue_prob = 0.12
 df["item_accuracy"] = rng.choice(
     ["correct", "wrong_item", "damaged"],
@@ -76,10 +41,7 @@ df["item_accuracy"] = rng.choice(
     p=[1 - item_issue_prob, item_issue_prob * 0.6, item_issue_prob * 0.4]
 )
 
-# ASSUMPTION: resolution outcome, conditional on there being an issue.
-# Reviews repeatedly described a "correct product was dispatched" denial
-# pattern — modeled here as a meaningful share of "denied" outcomes,
-# not a literal measured refund-denial rate.
+"---------------------------------------------------------------------------------"
 def resolve(row):
     if row["item_accuracy"] == "correct" and row["delivery_status"] == "on_time":
         return "not_applicable"
@@ -95,13 +57,6 @@ df["complaint_channel"] = rng.choice(
     size=N_ORDERS,
     p=[0.30, 0.25, 0.20, 0.10, 0.15]
 )
-
-# ---------------------------------------------------------------------
-# 2. Derived metric: Reorder-Risk Flag
-#    High risk = item issue (wrong/damaged) AND resolution was denied
-#    or left unresolved. This is the specific pattern that showed up
-#    repeatedly in real review text.
-# ---------------------------------------------------------------------
 df["reorder_risk"] = (
     (df["item_accuracy"].isin(["wrong_item", "damaged"]))
     & (df["resolution_outcome"].isin(["denied", "unresolved"]))
@@ -109,9 +64,6 @@ df["reorder_risk"] = (
 
 df["delivery_failure"] = (df["delivery_status"] != "on_time").astype(int)
 
-# ---------------------------------------------------------------------
-# 3. Analysis: does the hypothesis hold in this synthetic model?
-# ---------------------------------------------------------------------
 risk_by_tier = df.groupby("city_tier")["reorder_risk"].mean().reindex(
     ["metro", "tier2", "tier3"]
 ) * 100
@@ -140,9 +92,6 @@ print("RESOLUTION OUTCOME BREAKDOWN, WHEN AN ISSUE OCCURRED (%)")
 print("=" * 60)
 print(resolution_breakdown.round(1))
 
-# ---------------------------------------------------------------------
-# 4. Charts
-# ---------------------------------------------------------------------
 fig, axes = plt.subplots(1, 3, figsize=(16, 5))
 
 # Chart 1: Reorder-risk by city tier
@@ -180,24 +129,8 @@ print("\nSaved chart: post_purchase_analysis.png")
 
 df.to_csv("post_purchase_orders.csv", index=False)
 print("Saved dataset: post_purchase_orders.csv")
-
-# ---------------------------------------------------------------------
-# ASSUMPTIONS (fact-check before presenting)
-# ---------------------------------------------------------------------
 print("""
-ASSUMPTIONS USED IN THIS MODEL (all illustrative, not measured):
-1. City-tier order mix (40/35/25 metro/tier2/tier3) — a plausible split,
-   not sourced from Nykaa data.
-2. Delivery delay probabilities (10%/18%/27% by tier) — direction matches
-   the tier-2/3 delivery-reliability gap reported vs. Purplle in public
-   comparisons; exact percentages are assumed, not measured.
-3. Item-accuracy issue rate (12% baseline) — reviews show wrong/damaged
-   items as a recurring complaint theme, but no real rate was published;
-   this figure is a deliberately conservative placeholder.
-4. Resolution-outcome split (35% refunded / 25% replaced / 25% denied /
-   15% unresolved) — modeled to reflect the "denied despite evidence"
-   pattern seen repeatedly in review text, not a real published rate.
-5. This dataset (N=5000) is separate from the original funnel dataset
+
    (N=10000 sessions, ~230 orders) — it zooms into the post-purchase
    stage with a larger sample purely to make patterns visible.
 """)
