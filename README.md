@@ -112,6 +112,11 @@ nykaa-funnel-analysis/
 ├── funnel_device.png              ← Conversion by device chart
 ├── funnel_category.png            ← Cart abandonment by category
 └── README.md
+nykaa_extension/
+├── post_purchase_extension.py    ← Full script: data gen, analysis, charts
+├── post_purchase_orders.csv      ← Generated synthetic dataset (5K orders)
+├── post_purchase_analysis.png    ← 3-panel chart: risk by tier, delivery by tier, resolution breakdown
+└── README_post_purchase_extension.md
 ```
 
 ---
@@ -130,6 +135,50 @@ Built in Power BI with 5 visuals:
 
 ---
 
+# 🔄 Post-Purchase Extension — Nykaa Funnel Project
+
+> Extending the original purchase-funnel analysis past "Order Placed" — because real customer review data suggests that's where the bigger leak might actually be.
+
+---
+
+## Why this extension exists
+
+The original project modeled Homepage → Order Placed and found the biggest pre-purchase drop-off at Product View → Add to Cart.
+
+While researching Nykaa for this application, I looked at real, public customer reviews (PissedConsumer, Trustpilot) rather than just the pre-purchase funnel. The pattern was hard to ignore: Nykaa's Play Store rating sits at 4.5★, but independent complaint platforms show a 1.6★ rating with 82% unfavorable feedback, driven by a repeating theme — wrong or damaged items, followed by a refund/replacement refusal citing "correct product dispatched."
+
+Separately, public comparisons of Nykaa vs. Purplle note that Purplle has a real delivery-reliability edge in tier-2/3 cities.
+
+That gave me a testable hypothesis: **the bigger revenue leak may be post-purchase (delivery + dispute resolution), not pre-purchase — and it's likely worse outside metro cities.**
+
+---
+
+## What this extension does
+
+- Adds a synthetic post-purchase dataset (5,000 orders) with `city_tier`, `delivery_status`, `item_accuracy`, `resolution_outcome`, and `complaint_channel`
+- Computes a **Reorder-Risk Flag**: item issue (wrong/damaged) AND resolution denied/unresolved
+- Cuts every metric by `city_tier` to test the tier-2/3 hypothesis directly
+
+## ⚠️ This is still synthetic data
+
+Same disclosure as the original project: this is not real Nykaa order data. Probabilities are illustrative, designed to reflect the *direction* of patterns in public reviews — not measured rates. Every assumption is listed at the bottom of `post_purchase_extension.py`.
+
+---
+
+## What I found (in the synthetic model)
+
+| City Tier | Delivery Failure Rate |
+|---|---|
+| Metro | 12.5% |
+| Tier 2 | 20.9% |
+| Tier 3 | 29.4% |
+
+Delivery failure rate more than doubles from metro to tier-3 — consistent with the direction reported in public Nykaa-vs-Purplle comparisons.
+
+Of orders with an item issue, 26% ended in a denied resolution and 16% went unresolved — a combined ~42% of complaints that don't get fixed. That's the exact pattern described repeatedly in real customer reviews.
+
+---
+
 ## How to Run
 
 ```bash
@@ -143,24 +192,8 @@ pip install pandas numpy matplotlib seaborn
 jupyter notebook nykaa_funnel_generator.ipynb
 
 # 4. Run all cells — dataset generates automatically, no download needed
-```
+python post_purchase_extension.py
 
----
 
-## Business Impact Estimate
-
-If Nykaa improved Add-to-Cart → Checkout conversion by just 10%:
-- Additional checkouts per 10K sessions: ~60
-- At avg order value of ₹800: **₹48,000 additional revenue per 10K sessions**
-- At Nykaa's actual scale (millions of daily sessions): significant 8-figure annual impact
-
----
-
-## What I Learned
-
-- How to design realistic synthetic data that mirrors real business patterns
-- SQL window functions (`RANK()`, `LAG()`) for funnel analysis
-- How device type and product category interact with conversion — not just overall metrics
-- How to connect data findings to specific, actionable business recommendations
 
 
