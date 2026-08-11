@@ -193,7 +193,21 @@ jupyter notebook nykaa_funnel_generator.ipynb
 
 # 4. Run all cells — dataset generates automatically, no download needed
 python post_purchase_extension.py
+```
+---
+## Business Impact Estimate
+
+If Nykaa improved Add-to-Cart → Checkout conversion by just 10%:
+- Additional checkouts per 10K sessions: ~60
+- At avg order value of ₹800: **₹48,000 additional revenue per 10K sessions**
+- At Nykaa's actual scale (millions of daily sessions): significant 8-figure annual impact
 
 
+## What I Learned
+
+- How to design realistic synthetic data that mirrors real business patterns
+- SQL window functions (`RANK()`, `LAG()`) for funnel analysis
+- How device type and product category interact with conversion — not just overall metrics
+- How to connect data findings to specific, actionable business recommendations
 
 
